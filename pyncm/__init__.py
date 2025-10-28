@@ -3,31 +3,30 @@
 
 PyNCM 包装的网易云音乐 API 的使用非常简单::
 
-    >>> from pyncm import apis
+    >>> import pyncm
+    # 创建Session
+    >>> session = pyncm_async.Session()
     # 登录
-    >>> apis.LoginViaCellphone(phone="[..]", password="[..]", ctcode=86, remeberLogin=True)
+    >>> pyncm.apis.LoginViaCellphone(phone="[..]", password="[..]", ctcode=86, remeberLogin=True, session=session)
     # 获取歌曲信息
-    >>> apis.track.GetTrackAudio(29732235)
+    >>> pyncm.apis.track.GetTrackAudio(29732235, session=session)
     {'data': [{'id': 29732235, 'url': 'http://m701.music...
     # 获取歌曲详情
-    >>> apis.track.GetTrackDetail(29732235)
+    >>> pyncm.apis.track.GetTrackDetail(29732235, session=session)
     {'songs': [{'name': 'Supernova', 'id': 2...
     # 获取歌曲评论
-    >>> apis.track.GetTrackComments(29732235)
+    >>> pyncm.apis.track.GetTrackComments(29732235, session=session)
     {'isMusician': False, 'userId': -1, 'topComments': [], 'moreHot': True, 'hotComments': [{'user': {'locationInfo': None, 'liveIn ...
 
-PyNCM 的所有 API 请求都将经过单例的 `pyncm.Session` 发出，管理此单例可以使用::
+PyNCM 的所有 API 请求都将经过传入的 `pyncm.Session` 发出，调用时必须显式传入 `session` 参数:
 
-    >>> session = pyncm.GetCurrentSession()
-    >>> pyncm.SetCurrentSession(session)
-    >>> pyncm.SetNewSession()
+    >>> session = Session()
+    >>> pyncm.apis.track.GetTrackComments(29732235, session=session)
 
-PyNCM 同时提供了相应的 Session 序列化函数，用于其储存及管理::
+PyNCM 提供了相应的 Session 序列化函数，用于其储存及管理:
 
-    >>> save = pyncm.DumpSessionAsString()
-    >>> pyncm.SetCurrentSession(
-            pyncm.LoadSessionFromString(save)
-        )
+    >>> session_str = pyncm.DumpSessionAsString(session)
+    >>> new_session = pyncm.LoadSessionFromString(session_str)
 
 # 注意事项
     - (PR#11) 海外用户可能经历 460 "Cheating" 问题，可通过添加以下 Header 解决: `X-Real-IP = 118.88.88.88`
@@ -69,26 +68,13 @@ class Session(requests.Session):
 
         - HTTP方面，`Session`的配置方法和 `requests.Session` 完全一致，如配置 Headers:
 
-        GetCurrentSession().headers['X-Real-IP'] = '1.1.1.1'
+        Session().headers['X-Real-IP'] = '1.1.1.1'
 
         - 该 Session 其他参数也可被修改:
 
-        GetCurrentSession().force_http = True # 优先 HTTP
+        Session().force_http = True # 优先 HTTP
 
-        - Session 对象本身可作为 Context Manager 使用:
-
-
-    ```python
-    # 利用全局 Session 完成该 API Call
-    LoginViaEmail(...)
-    session = CreateNewSession() # 建立新的 Session
-    with session: # 进入该 Session, 在 `with` 内的 API 将由该 Session 完成
-        LoginViaCellPhone(...)
-    # 离开 Session. 此后 API 将继续由全局 Session 管理
-    ```
-    注：Session 各*线程*独立，各线程利用 `with` 设置的 Session 不互相影响
-
-    获取其他具体信息请参考该文档注释
+        获取其他具体信息请参考该文档注释
     """
 
     HOST = "music.163.com"
