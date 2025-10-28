@@ -33,7 +33,6 @@ from functools import wraps
 from requests.models import Response
 from typing import Coroutine, Any, Callable, Union, Tuple, ParamSpec
 
-from .exception import LoginRequiredException
 from ..utils.crypto import (
     EapiDecrypt,
     EapiEncrypt,
@@ -44,7 +43,6 @@ from .. import logger, Session
 import json, urllib.parse
 
 
-LOGIN_REQUIRED = LoginRequiredException("需要登录")
 # 通过泛型类型，标注被装饰函数的参数类型
 ApiFuncParams = ParamSpec("ApiFuncParams")
 
