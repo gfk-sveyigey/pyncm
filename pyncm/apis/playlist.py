@@ -46,7 +46,6 @@ def GetPlaylistAllTracks(playlist_id: Union[str, int], offset=0, limit=1000, *, 
     Returns:
         dict
     """
-    session = session or GetCurrentSession()
     data = GetPlaylistInfo(playlist_id, offset, True, limit, session=session)
     trackIds = [track["id"] for track in data["playlist"]["trackIds"]]
     id = trackIds[offset : offset + limit]
