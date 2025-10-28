@@ -17,7 +17,7 @@ PyNCM_Async 包装的网易云音乐 API 的使用非常简单::
 
 PyNCM_Async 的所有 API 请求都将经过传入的 `pyncm_asycn.Session` 发出，调用时必须显式传入 `session` 参数:
 
-    >>> session = Session
+    >>> session = Session()
     >>> await pyncm_async.apis.track.GetTrackComments(29732235, session=session)
 
 PyNCM_Async 提供了相应的 Session 序列化函数，用于其储存及管理::
