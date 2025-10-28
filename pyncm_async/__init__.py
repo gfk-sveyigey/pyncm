@@ -62,12 +62,6 @@ if "PYNCM_ASYNC_DEBUG" in os.environ:
 # Don't think that would be of any issue though...
 DEVICE_ID_DEFAULT = "pyncm!"
 
-# 用于上下文管理器创建的 Session 的管理
-SESSION_STACK_CONTEXT = dict()
-# 用于管理多线程或多事件循环下的并发 Session
-SESSION_STACK_CONCURRENCY = dict()
-
-
 
 class Session(httpx.AsyncClient):
     """# Session
@@ -111,16 +105,11 @@ class Session(httpx.AsyncClient):
     """优先使用 HTTP 作 API 请求协议"""
 
     async def __aenter__(self) -> httpx.AsyncClient:
-        SESSION_STACK_CONTEXT.setdefault(get_running_loop(), list())
-        SESSION_STACK_CONTEXT[get_running_loop()].append(self)
-        return await super().__aenter__()
-
-    async def __aexit__(self, *args) -> None:
-        SESSION_STACK_CONTEXT[get_running_loop()].pop()
-        return await super().__aexit__(*args)
+        raise TypeError(
+            f"{self.__class__.__name__} does not support the context manager"
+        )
 
     def __init__(self, *args, **kwargs):
-        self.loop = get_running_loop()
         super().__init__(*args, **kwargs)
         self.headers = {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -217,10 +206,6 @@ class Session(httpx.AsyncClient):
         Returns:
             httpx.Response
         """
-        if self.loop != get_running_loop():
-            raise Exception(
-                "Current Session was not created in the current event loop."
-            )
         if url[:4] != "http":
             url = f"https://{self.HOST}{url}"
         if self.force_http:
@@ -268,39 +253,12 @@ class Session(httpx.AsyncClient):
         for k, v in dumped.items():
             self._session_info[k][1](self, v)
         return True
-
-
-# endregion
+    
+    # endregion
 
 
 class SessionManager:
     """PyNCM_Async Session 单例储存对象"""
-
-    def get(self) -> Session:
-        loop = get_running_loop()
-        # 上下文管理器
-        if SESSION_STACK_CONTEXT.get(loop, None):
-            return SESSION_STACK_CONTEXT[loop][-1]
-        # 并发
-        if SESSION_STACK_CONCURRENCY.get(loop, None):
-            return SESSION_STACK_CONCURRENCY[loop]
-        # 实例化新Session
-        session = Session()
-        SESSION_STACK_CONCURRENCY[loop] = session
-        return session
-
-    def set(self, session: Session) -> None:
-        loop = get_running_loop()
-        # 上下文管理器
-        if SESSION_STACK_CONTEXT.get(loop, None):
-            raise Exception(
-                "Current Session is in `with` block, which cannot be reassigned."
-            )
-        if session.loop != loop:
-            raise Exception(
-                "Current Session was not created in the current event loop."
-            )
-        SESSION_STACK_CONCURRENCY[loop] = session
 
     # region Session serialization
     @staticmethod
@@ -350,26 +308,6 @@ class SessionManager:
 sessionManager = SessionManager()
 
 
-def GetCurrentSession() -> Session:
-    """获取当前事件循环正在被 PyNCM_Async 使用的 Session / 登录态"""
-    return sessionManager.get()
-
-
-def SetCurrentSession(session: Session):
-    """设置当前事件循环正在被 PyNCM_Async 使用的 Session / 登录态"""
-    sessionManager.set(session)
-
-
-def SetNewSession():
-    """设置事件循环新的被 PyNCM_Async 使用的 Session / 登录态"""
-    sessionManager.set(Session())
-
-
-def CreateNewSession() -> Session:
-    """在当前事件循环创建新 Session 实例"""
-    return Session()
-
-
 def LoadSessionFromString(dump: str) -> Session:
     """从 `str` 加载 Session / 登录态"""
     session = SessionManager.parse(dump)
@@ -381,7 +319,7 @@ def DumpSessionAsString(session: Session) -> str:
     return SessionManager.stringify(session)
 
 
-def WriteLoginInfo(content: dict, session: Session = None):
+def WriteLoginInfo(content: dict, session: Session):
     """写登录态入Session
 
     Args:
@@ -392,7 +330,6 @@ def WriteLoginInfo(content: dict, session: Session = None):
         LoginFailedException: 登陆失败时发生
     """
 
-    session = session or GetCurrentSession()
     session.login_info = {"tick": time(), "content": content}
     if not session.login_info["content"]["code"] == 200:
         session.login_info["success"] = False

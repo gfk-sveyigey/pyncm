@@ -27,9 +27,8 @@ def res_logging(res, api_name):
     logging.info((api_name, res.get("code", None), type(res), len(res), res.keys(), len(json.dumps(res))))
 
 async def session_init():
-    pyncm_async.SetCurrentSession(
-        pyncm_async.LoadSessionFromString(session_str)
-    )
+    global session
+    session = pyncm_async.LoadSessionFromString(session_str)
 
 
 @pytest.fixture(scope="session")
@@ -41,35 +40,35 @@ def event_loop():
 
 def test_album_GetAlbumInfo(event_loop: asyncio.AbstractEventLoop):
     logging.info(id(event_loop))
-    res = event_loop.run_until_complete(album.GetAlbumInfo(album_id))
+    res = event_loop.run_until_complete(album.GetAlbumInfo(album_id, session=session))
     res_logging(res, "GetAlbumInfo")
 
 def test_album_GetAlbumComments(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(album.GetAlbumComments(album_id))
+    res = event_loop.run_until_complete(album.GetAlbumComments(album_id, session=session))
     res_logging(res, "GetAlbumComments")
 
 def test_artist_GetArtistAlbums(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(artist.GetArtistAlbums(artist_id))
+    res = event_loop.run_until_complete(artist.GetArtistAlbums(artist_id, session=session))
     res_logging(res, "GetArtistAlbums")
 
 def test_artist_GetArtistTracks(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(artist.GetArtistTracks(artist_id))
+    res = event_loop.run_until_complete(artist.GetArtistTracks(artist_id, session=session))
     res_logging(res, "GetArtistTracks")
 
 def test_artist_GetArtistTracks(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(artist.GetArtistTracks(artist_id))
+    res = event_loop.run_until_complete(artist.GetArtistTracks(artist_id, session=session))
     res_logging(res, "GetArtistTracks")
 
 def test_artist_GetArtistDetails(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(artist.GetArtistDetails(artist_id))
+    res = event_loop.run_until_complete(artist.GetArtistDetails(artist_id, session=session))
     res_logging(res, "GetArtistDetails")
 
 def test_cloud_GetCloudDriveInfo(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(cloud.GetCloudDriveInfo(50, 0))
+    res = event_loop.run_until_complete(cloud.GetCloudDriveInfo(50, 0, session=session))
     res_logging(res, "GetCloudDriveInfo")
 
 def test_cloud_GetCloudDriveItemInfo(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(cloud.GetCloudDriveItemInfo([293931]))
+    res = event_loop.run_until_complete(cloud.GetCloudDriveItemInfo([293931], session=session))
     res_logging(res, "GetCloudDriveItemInfo")
 
 def test_cloud_upload(event_loop: asyncio.AbstractEventLoop):
@@ -83,7 +82,7 @@ def test_cloud_SetRectifySongId(event_loop: asyncio.AbstractEventLoop):
 
 def test_cloudsearch(event_loop: asyncio.AbstractEventLoop):
     res = event_loop.run_until_complete(
-        cloudsearch.GetSearchResult("愚人的国度", cloudsearch.SONG)
+        cloudsearch.GetSearchResult("愚人的国度", cloudsearch.SONG, session=session)
     )
     res_logging(res, "GetSearchResult")
 
@@ -94,44 +93,44 @@ def test_login(event_loop: asyncio.AbstractEventLoop):
     pass
 
 def test_playlist_GetPlaylistInfo(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(playlist.GetPlaylistInfo(playlist_id))
+    res = event_loop.run_until_complete(playlist.GetPlaylistInfo(playlist_id, session=session))
     res_logging(res, "GetPlaylistInfo")
 
 def test_playlist_GetPlaylistAllTracks(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(playlist.GetPlaylistAllTracks(playlist_id))
+    res = event_loop.run_until_complete(playlist.GetPlaylistAllTracks(playlist_id, session=session))
     res_logging(res, "GetPlaylistAllTracks")
 
 def test_playlist_GetPlaylistComments(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(playlist.GetPlaylistComments(playlist_id))
+    res = event_loop.run_until_complete(playlist.GetPlaylistComments(playlist_id, session=session))
     res_logging(res, "GetPlaylistComments")
 
 def test_playlist_SetManipulatePlaylistTracks(event_loop: asyncio.AbstractEventLoop):
     res = event_loop.run_until_complete(
-        playlist.SetManipulatePlaylistTracks([2120125578], 406884341, "add")
+        playlist.SetManipulatePlaylistTracks([2120125578], 406884341, "add", session=session)
     )
     res_logging(res, "SetManipulatePlaylistTracks.add")
     res = event_loop.run_until_complete(
-        playlist.SetManipulatePlaylistTracks([2120125578], 406884341, "del")
+        playlist.SetManipulatePlaylistTracks([2120125578], 406884341, "del", session=session)
     )
     res_logging(res, "SetManipulatePlaylistTracks.del")
 
 def test_playlist_create_and_remove(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(playlist.SetCreatePlaylist("PYNCM"))
+    res = event_loop.run_until_complete(playlist.SetCreatePlaylist("PYNCM", session=session))
     res_logging(res, "SetPlaylist.create")
     id = res["id"]
-    res = event_loop.run_until_complete(playlist.SetRemovePlaylist((id)))
+    res = event_loop.run_until_complete(playlist.SetRemovePlaylist((id), session=session))
     res_logging(res, "SetPlaylist.remove")
 
 def test_track_GetTrackDetail(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackDetail(song_id))
+    res = event_loop.run_until_complete(track.GetTrackDetail(song_id, session=session))
     res_logging(res, "GetTrackDetail")
 
 def test_track_GetTrackAudio(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackAudio(song_id))
+    res = event_loop.run_until_complete(track.GetTrackAudio(song_id, session=session))
     res_logging(res, "GetTrackAudio")
 
 def test_track_GetTrackAudioV1(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackAudioV1(song_id))
+    res = event_loop.run_until_complete(track.GetTrackAudioV1(song_id, session=session))
     res_logging(res, "GetTrackAudioV1")
 
 def test_track_GetTrackDownloadURL(event_loop: asyncio.AbstractEventLoop):
@@ -139,25 +138,25 @@ def test_track_GetTrackDownloadURL(event_loop: asyncio.AbstractEventLoop):
     pass
 
 def test_track_GetTrackDownloadURLV1(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackDownloadURLV1(song_id))
+    res = event_loop.run_until_complete(track.GetTrackDownloadURLV1(song_id, session=session))
     res_logging(res, "GetTrackDownloadURLV1")
 
 def test_track_GetTrackLyrics(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackLyrics(song_id))
+    res = event_loop.run_until_complete(track.GetTrackLyrics(song_id, session=session))
     res_logging(res, "GetTrackLyrics")
 
 def test_track_GetTrackLyricsV1(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackLyricsV1(song_id))
+    res = event_loop.run_until_complete(track.GetTrackLyricsV1(song_id, session=session))
     res_logging(res, "GetTrackLyricsNew")
 
 def test_track_GetTrackComments(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.GetTrackComments(song_id))
+    res = event_loop.run_until_complete(track.GetTrackComments(song_id, session=session))
     res_logging(res, "GetTrackComments")
 
 def test_track_SetLikeTrack(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(track.SetLikeTrack(2706275303, True))
+    res = event_loop.run_until_complete(track.SetLikeTrack(2706275303, True, session=session))
     res_logging(res, "SetLikeTrack.add")
-    res = event_loop.run_until_complete(track.SetLikeTrack(2706275303, False))
+    res = event_loop.run_until_complete(track.SetLikeTrack(2706275303, False, session=session))
     res_logging(res, "SetLikeTrack.del")
 
 def test_track_GetMatchTrackByFP(event_loop: asyncio.AbstractEventLoop):
@@ -165,23 +164,23 @@ def test_track_GetMatchTrackByFP(event_loop: asyncio.AbstractEventLoop):
     pass
 
 def test_user_GetUserDetail(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(user.GetUserDetail(user_id))
+    res = event_loop.run_until_complete(user.GetUserDetail(user_id, session=session))
     res_logging(res, "GetUserDetail")
 
 def test_user_GetUserPlaylists(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(user.GetUserPlaylists(user_id))
+    res = event_loop.run_until_complete(user.GetUserPlaylists(user_id, session=session))
     res_logging(res, "GetUserPlaylists")
 
 def test_user_GetUserAlbumSubs(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(user.GetUserAlbumSubs())
+    res = event_loop.run_until_complete(user.GetUserAlbumSubs(session=session))
     res_logging(res, "GetUserAlbumSubs")
 
 def test_user_GetUserArtistSubs(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(user.GetUserArtistSubs())
+    res = event_loop.run_until_complete(user.GetUserArtistSubs(session=session))
     res_logging(res, "GetUserArtistSubs")
 
 def test_user_SetSignin(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(user.SetSignin())
+    res = event_loop.run_until_complete(user.SetSignin(session=session))
     res_logging(res, "SetSignin")
 
 def test_user_SetWeblog(event_loop: asyncio.AbstractEventLoop):
@@ -200,17 +199,17 @@ def test_user_SetWeblog(event_loop: asyncio.AbstractEventLoop):
             },
         }
     ]
-    res = event_loop.run_until_complete(user.SetWeblog(logs))
+    res = event_loop.run_until_complete(user.SetWeblog(logs, session=session))
     res_logging(res, "SetWeblog")
 
 def test_video_GetMVDetail(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(video.GetMVDetail(mv_id))
+    res = event_loop.run_until_complete(video.GetMVDetail(mv_id, session=session))
     res_logging(res, "GetMVDetail")
 
 def test_video_GetMVResource(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(video.GetMVResource(mv_id))
+    res = event_loop.run_until_complete(video.GetMVResource(mv_id, session=session))
     res_logging(res, "GetMVResource")
 
 def test_video_GetMVComments(event_loop: asyncio.AbstractEventLoop):
-    res = event_loop.run_until_complete(video.GetMVComments(mv_id))
+    res = event_loop.run_until_complete(video.GetMVComments(mv_id, session=session))
     res_logging(res, "GetMVComments")

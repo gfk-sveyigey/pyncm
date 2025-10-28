@@ -2,7 +2,7 @@
 """我的音乐云盘 - Cloud APIs"""
 import json
 from typing import Union
-from . import WeapiCryptoRequest, EapiCryptoRequest, GetCurrentSession
+from . import WeapiCryptoRequest, EapiCryptoRequest, Session
 
 BUCKET = "jd-musicrep-privatecloud-audio-public"
 
@@ -82,7 +82,8 @@ async def SetUploadObject(
     offset=0,
     compete=True,
     bucket=BUCKET,
-    session=None,
+    *, 
+    session: Session,
 ) -> dict:
     """移动端 - 上传内容
 
@@ -97,7 +98,7 @@ async def SetUploadObject(
     Returns:
         dict
     """
-    r = await (session or GetCurrentSession()).post(
+    r = await session.post(
         f"http://45.127.129.8/{bucket}/{objectKey.replace("/", "%2F")}",
         data=stream,
         params={"version": "1.0", "offset": offset, "complete": str(compete).lower()},
@@ -188,7 +189,7 @@ def SetPublishCloudResource(songid):
     }
 
 
-async def SetRectifySongId(oldSongId, newSongId, session=None) -> dict:
+async def SetRectifySongId(oldSongId, newSongId, *, session: Session) -> dict:
     """移动端 - 歌曲纠偏
 
     Args:
@@ -199,8 +200,7 @@ async def SetRectifySongId(oldSongId, newSongId, session=None) -> dict:
         dict
     """
     return (
-        (await (session or GetCurrentSession())
-        .get(
+        (await session.get(
             "/api/cloud/user/song/match",
             params={"songId": str(oldSongId), "adjustSongId": str(newSongId)},
         ))
