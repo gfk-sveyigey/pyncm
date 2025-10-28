@@ -31,6 +31,7 @@
 from random import randrange
 from functools import wraps
 from requests.models import Response
+from typing import Coroutine, Any, Callable, Union, Tuple, ParamSpec
 
 from .exception import LoginRequiredException
 from ..utils.crypto import (
@@ -44,9 +45,13 @@ import json, urllib.parse
 
 
 LOGIN_REQUIRED = LoginRequiredException("需要登录")
+# 通过泛型类型，标注被装饰函数的参数类型
+ApiFuncParams = ParamSpec("ApiFuncParams")
 
 
-def _BaseWrapper(requestFunc):
+def _BaseWrapper(
+    requestFunc: Callable[..., Union[dict, Response]],
+) -> Callable[[Callable[ApiFuncParams, Any]], Callable[ApiFuncParams, Union[dict, Response]]]:
     """API加密函数通用修饰器
 
     实际使用请参考以下其他 Wrapper::
@@ -58,7 +63,9 @@ def _BaseWrapper(requestFunc):
     """
 
     @wraps(requestFunc)
-    def apiWrapper(apiFunc):
+    def apiWrapper(
+        apiFunc: Callable[ApiFuncParams, Tuple[str, dict, Union[str, None]]]
+    ) -> Callable[ApiFuncParams, Union[dict, Response]]:
         @wraps(apiFunc)
         def wrapper(*args, **kwargs):
             # HACK: 'session=' keyword support
@@ -111,7 +118,7 @@ def _BaseWrapper(requestFunc):
 
 
 @_BaseWrapper
-def WeapiCryptoRequest(session: "Session", url, plain, method="POST"):
+def WeapiCryptoRequest(session: "Session", url, plain, method="POST") -> Response:
     """Weapi - 适用于 网页端、小程序、手机端部分 APIs"""
     payload = {**plain, "csrf_token": session.csrf_token}
     return session.request(
