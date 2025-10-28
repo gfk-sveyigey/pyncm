@@ -3,31 +3,27 @@
 
 PyNCM_Async 包装的网易云音乐 API 的使用非常简单::
 
-    >>> from pyncm_async import apis
-    # 登录
-    >>> await apis.LoginViaCellphone(phone="[..]", password="[..]", ctcode=86, remeberLogin=True))
-    # 获取歌曲信息
-    >>> await apis.track.GetTrackAudio(29732235)
-    {'data': [{'id': 29732235, 'url': 'http://m701.music...
-    # 获取歌曲详情
-    >>> await apis.track.GetTrackDetail(29732235)
-    {'songs': [{'name': 'Supernova', 'id': 2...
-    # 获取歌曲评论
-    >>> await apis.track.GetTrackComments(29732235)
-    {'isMusician': False, 'userId': -1, 'topComments': [], 'moreHot': True, 'hotComments': [{'user': {'locationInfo': None, 'liveIn ...
+    >>> import asyncio
+    >>> import pyncm_async
+    >>> async def main():
+    >>>     session = pyncm_async.Session()
+    >>>     # 获取歌曲信息
+    >>>     await pyncm_async.apis.track.GetTrackAudio(29732235, session=session)
+    >>>     # 获取歌曲详情
+    >>>     await pyncm_async.apis.track.GetTrackDetail(29732235, session=session)
+    >>>     # 获取歌曲评论
+    >>>     await pyncm_async.apis.track.GetTrackComments(29732235, session=session)
+    >>> asyncio.run(main())
 
-PyNCM_Async 的所有 API 请求都将经过单例的 `pyncm_asycn.Session` 发出，管理此单例可以使用::
+PyNCM_Async 的所有 API 请求都将经过传入的 `pyncm_asycn.Session` 发出，调用时必须显式传入 `session` 参数:
 
-    >>> session = pyncm_asycn.GetCurrentSession()
-    >>> pyncm_asycn.SetCurrentSession(session)
-    >>> pyncm_asycn.SetNewSession()
+    >>> session = Session
+    >>> await pyncm_async.apis.track.GetTrackComments(29732235, session=session)
 
-PyNCM_Async 同时提供了相应的 Session 序列化函数，用于其储存及管理::
+PyNCM_Async 提供了相应的 Session 序列化函数，用于其储存及管理::
 
-    >>> save = pyncm_asycn.DumpSessionAsString()
-    >>> pyncm_asycn.SetNewSession(
-            pyncm_asycn.LoadSessionFromString(save)
-        )
+    >>> session_str = pyncm_asycn.DumpSessionAsString(session)
+    >>> new_session = pyncm_asycn.LoadSessionFromString(session_str)
 
 # 注意事项
     - (PR#11) 海外用户可能经历 460 "Cheating" 问题，可通过添加以下 Header 解决: `X-Real-IP = 118.88.88.88`
@@ -67,28 +63,15 @@ class Session(httpx.AsyncClient):
     """# Session
         实现网易云音乐登录态 / API 请求管理
 
-        - HTTP方面，`Session`的配置方法和 `httpx.Session` 完全一致，如配置 Headers:
+        - HTTP方面，`Session`的配置方法和 `httpx.AsyncClient` 完全一致，如配置 Headers:
 
-        GetCurrentSession().headers['X-Real-IP'] = '1.1.1.1'
+        Session().headers['X-Real-IP'] = '1.1.1.1'
 
         - 该 Session 其他参数也可被修改:
 
-        GetCurrentSession().force_http = True # 优先 HTTP
+        Session().force_http = True # 优先 HTTP
 
-        - Session 对象本身可作为 Context Manager 使用:
-
-
-    ```python
-    # 利用全局 Session 完成该 API Call
-    await LoginViaEmail(...)
-    session = CreateNewSession() # 建立新的 Session
-    async with session: # 进入该 Session, 在 `async with` 内的 API 将由该 Session 完成
-        await LoginViaCellPhone(...)
-    # 离开 Session. 此后 API 将继续由全局 Session 管理
-    ```
-    注：Session 各*线程*独立，各线程利用 `async with` 设置的 Session 不互相影响
-
-    获取其他具体信息请参考该文档注释
+        获取其他具体信息请参考该文档注释
     """
 
     HOST = "music.163.com"
