@@ -40,6 +40,6 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    install_requires=["httpx"],
+    install_requires=["httpx>=0.25.0"],
     python_requires=">=3.8",
 )
