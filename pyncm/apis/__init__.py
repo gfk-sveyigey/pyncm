@@ -154,7 +154,6 @@ def EapiCryptoRequest(session: "Session", url, plain, method):
 # 注：向后支持；文档允许从`apis`直接导入这些子模块
 from . import (
     artist as artist,
-    miniprograms as miniprograms,
     album as album,
     cloud as cloud,
     cloudsearch as cloudsearch,
