@@ -35,7 +35,6 @@ __VERSION_PATCH__ = 2
 
 __version__ = f"{__VERSION_MAJOR__}.{__VERSION_MINOR__}.{__VERSION_PATCH__}"
 
-from asyncio import get_running_loop
 from typing import Text, Union
 from time import time
 
