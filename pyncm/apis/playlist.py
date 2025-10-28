@@ -3,7 +3,7 @@
 
 import json
 from typing import Union
-from . import EapiCryptoRequest, WeapiCryptoRequest, GetCurrentSession
+from . import EapiCryptoRequest, WeapiCryptoRequest, Session
 
 
 @WeapiCryptoRequest
@@ -35,7 +35,7 @@ def GetPlaylistInfo(playlist_id: Union[str, int], offset=0, total=True, limit=10
     }
 
 
-def GetPlaylistAllTracks(playlist_id: Union[str, int], offset=0, limit=1000, session=None):
+def GetPlaylistAllTracks(playlist_id: Union[str, int], offset=0, limit=1000, *, session: Session):
     """网页端 - 获取歌单所有歌曲
 
     Args:
@@ -52,7 +52,7 @@ def GetPlaylistAllTracks(playlist_id: Union[str, int], offset=0, limit=1000, ses
     id = trackIds[offset : offset + limit]
     from .track import GetTrackDetail
 
-    return GetTrackDetail(id)
+    return GetTrackDetail(id, session=session)
 
 
 @WeapiCryptoRequest

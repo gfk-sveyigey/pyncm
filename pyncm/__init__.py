@@ -37,9 +37,8 @@ __VERSION_MAJOR__ = 1
 __VERSION_MINOR__ = 8
 __VERSION_PATCH__ = 1
 
-__version__ = "%s.%s.%s" % (__VERSION_MAJOR__, __VERSION_MINOR__, __VERSION_PATCH__)
+__version__ = f"{__VERSION_MAJOR__}.{__VERSION_MINOR__}.{__VERSION_PATCH__}"
 
-from threading import current_thread
 from typing import Text, Union
 from time import time
 
@@ -56,11 +55,11 @@ if "PYNCM_DEBUG" in os.environ:
         level=debug_level, format="[%(levelname).4s] %(name)s %(message)s"
     )
 
+"""默认 deviceID"""
 DEVICE_ID_DEFAULT = "pyncm!"
 # This sometimes fails with some strings, for no particular reason. Though `pyncm!` seem to work everytime..?
 # Though with this, all pyncm users would then be sharing the same device Id.
 # Don't think that would be of any issue though...
-"""默认 deviceID"""
 SESSION_STACK = dict()
 
 
@@ -106,13 +105,9 @@ class Session(requests.Session):
     """优先使用 HTTP 作 API 请求协议"""
 
     def __enter__(self) -> requests.Response:
-        SESSION_STACK.setdefault(current_thread(), list())
-        SESSION_STACK[current_thread()].append(self)
-        return super().__enter__()
-
-    def __exit__(self, *args) -> None:
-        SESSION_STACK[current_thread()].pop()
-        return super().__exit__(*args)
+        raise TypeError(
+            f"{self.__class__.__name__} does not support the context manager"
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -266,21 +261,6 @@ class Session(requests.Session):
 class SessionManager:
     """PyNCM Session 单例储存对象"""
 
-    def __init__(self) -> None:
-        self.session = Session()
-
-    def get(self):
-        if SESSION_STACK.get(current_thread(), None):
-            return SESSION_STACK[current_thread()][-1]
-        return self.session
-
-    def set(self, session):
-        if SESSION_STACK.get(current_thread(), None):
-            raise Exception(
-                "Current Session is in `with` block, which cannot be reassigned."
-            )
-        self.session = session
-
     # region Session serialization
     @staticmethod
     def stringify_legacy(session: Session) -> str:
@@ -327,26 +307,6 @@ class SessionManager:
 # endregion
 
 sessionManager = SessionManager()
-
-
-def GetCurrentSession() -> Session:
-    """获取当前正在被 PyNCM 使用的 Session / 登录态"""
-    return sessionManager.get()
-
-
-def SetCurrentSession(session: Session):
-    """设置当前正在被 PyNCM 使用的 Session / 登录态"""
-    sessionManager.set(session)
-
-
-def SetNewSession():
-    """设置新的被 PyNCM 使用的 Session / 登录态"""
-    sessionManager.set(Session())
-
-
-def CreateNewSession() -> Session:
-    """创建新 Session 实例"""
-    return Session()
 
 
 def LoadSessionFromString(dump: str) -> Session:

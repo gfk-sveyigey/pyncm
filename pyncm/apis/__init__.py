@@ -40,7 +40,7 @@ from ..utils.crypto import (
     WeapiEncrypt,
     AbroadDecrypt,
 )
-from .. import GetCurrentSession, logger, Session
+from .. import logger, Session
 import json, urllib.parse
 
 
@@ -67,13 +67,7 @@ def _BaseWrapper(
         apiFunc: Callable[ApiFuncParams, Tuple[str, dict, Union[str, None]]]
     ) -> Callable[ApiFuncParams, Union[dict, Response]]:
         @wraps(apiFunc)
-        def wrapper(*args, **kwargs):
-            # HACK: 'session=' keyword support
-            session = kwargs.get("session", GetCurrentSession())
-            # HACK: For now,wrapped functions will not have access to the session object
-            if "session" in kwargs:
-                del kwargs["session"]
-
+        def wrapper(*args, session: Session, **kwargs):
             ret = apiFunc(*args, **kwargs)
             url, payload = ret[:2]
             method = ret[-1] if ret[-1] in ["POST", "GET"] else "POST"
