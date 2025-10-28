@@ -102,7 +102,7 @@ def LoginViaCookie(MUSIC_U="", session=None, **kwargs):
     session = session or GetCurrentSession()
     session.cookies.update({"MUSIC_U": MUSIC_U, **kwargs})
     login_status = GetCurrentLoginStatus(session=session)
-    WriteLoginInfo(login_status)
+    WriteLoginInfo(login_status, session)
     return {"code": 200, "result": session.login_info}
 
 
@@ -161,7 +161,7 @@ def LoginViaCellphone(
         )
     )(session=session)
 
-    WriteLoginInfo(login_status)
+    WriteLoginInfo(login_status, session)
     return {"code": 200, "result": session.login_info}
 
 
@@ -207,7 +207,7 @@ def LoginViaEmail(
         )
     )(session=session)
 
-    WriteLoginInfo(login_status)
+    WriteLoginInfo(login_status, session)
     return {"code": 200, "result": session.login_info}
 
 
@@ -325,6 +325,7 @@ def LoginViaAnonymousAccount(deviceId=None, session=None):
             "profile": {"nickname": "", **login_status},
             "account": {"id": login_status["userId"], **login_status},
         },
+        session
     )
     return session.login_info
 

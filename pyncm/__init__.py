@@ -360,18 +360,19 @@ def DumpSessionAsString(session: Session) -> str:
     return SessionManager.stringify(session)
 
 
-def WriteLoginInfo(content: dict):
+def WriteLoginInfo(content: dict, session: Session):
     """写登录态入Session
 
     Args:
         content (dict): 解码后的登录态
+        session (Session)
 
     Raises:
         LoginFailedException: 登陆失败时发生
     """
-    sessionManager.session.login_info = {"tick": time(), "content": content}
-    if not sessionManager.session.login_info["content"]["code"] == 200:
-        sessionManager.session.login_info["success"] = False
-        raise Exception(sessionManager.session.login_info["content"])
-    sessionManager.session.login_info["success"] = True
-    sessionManager.session.csrf_token = sessionManager.session.cookies.get("__csrf")
+    session.login_info = {"tick": time(), "content": content}
+    if not session.login_info["content"]["code"] == 200:
+        session.login_info["success"] = False
+        raise Exception(session.login_info["content"])
+    session.login_info["success"] = True
+    session.csrf_token = session.cookies.get("__csrf")
