@@ -14,6 +14,7 @@ from pyncm_async.apis import *
 logging.basicConfig(level=logging.INFO)
 
 session_str = "PYNCM..."
+session: pyncm_async.Session = None
 
 album_id = 28516
 artist_id = 9272
